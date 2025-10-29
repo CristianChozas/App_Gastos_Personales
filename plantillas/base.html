@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Aplicacion de gastos personales{& endblock %}</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='estilo.css')}}">
+</head>
+<body>
+    <header>
+        <h1>Gestión de gastos</h1>
+        <p>En esta aplicación encontrarás la mejor forma de ir anotando tus gastos para poder gestionarlos y llevar el máximo control de tus cuentas desde un solo sitio.</p>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Volver a inicio</a> |
+            <a href="{{ url_for('nuevo_gasto') }}">Añadir nuevo gasto</a>
+        </nav>
+    </header>
+    <main>
+        {% block contenido %}{% endblock %}
+    </main>
+    <footer>
+        <small>&copy; Cristian Chozas Díaz - Reservados todos los derechos. 11/05/2025</small>
+    </footer>
+</body>
+</html>

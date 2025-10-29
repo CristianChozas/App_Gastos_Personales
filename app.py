@@ -6,6 +6,7 @@ Se crea la aplicacion y define qué página se muestra cuando entras en la web.
 import os
 from flask import Flask, render_template
 from dotenv import load_dotenv
+from db import init_db
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ def crear_app():
 
 
 app = crear_app()
+init_db()
 
 if __name__ == "__main__":
     app.run(debug=True)
