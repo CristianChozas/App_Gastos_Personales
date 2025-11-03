@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block titulo %}Registrar gasto{% endblock %}
+
+{% block header %}<h2 class="h2form">Añade un nuevo gasto</h2>{% endblock %}
+
+{% block contenido %}
+    <form action="{{ url_for('nuevo_gasto') }}" method="post">
+        <fieldset>
+            <label for="cantidad">Cantidad
+                <input id="cantidad" name="cantidad" type="number" step="0.01" min="0.01" placeholder="Cantidad.." required autocomplete="on" autofocus value="{{ request.form.get('cantidad','') }}">
+            </label>
+            <label for="categoria">Categoría
+                <input id="categoria" name="categoria" type="text" placeholder="Categoría.." required autocomplete="on" value="{{ request.form.get('categoria','') }}">
+            </label>
+            <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" name="descripcion" placeholder="Descripción.." rows="3" >{{ request.form.get('descripcion','') }}</textarea>
+            <label for="fecha">Fecha
+                <input id="fecha" name="fecha" type="date" placeholder="Fecha.." required value="{{ request.form.get('fecha','') }}">
+            </label>
+        </fieldset>
+        <button type="submit">Enviar</button>
+        <button type="reset">Borrar</button>
+    </form>
+
+    {% if exito %}
+        <div class="mensaje-exito">
+            <p>Gasto añadido correctamente.</p>
+            <a class="btn" href="{{ url_for('inicio') }}">Volver al inicio</a>
+        </div>
+    {% endif %}
+{% endblock %}
