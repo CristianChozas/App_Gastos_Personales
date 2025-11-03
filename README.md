@@ -1,29 +1,16 @@
 # Aplicación web desarrollada con Flask para registrar y visualizar tus gastos personales.
 
-## Para correr la aplicación debes seguis los siguientes pasos:
+**Para acceder pulsa el siguiente enlace:**  [https://app-gastos-personales.onrender.com]
 
-1- Clona el repositorio
+A través del enlace podrás acceder a una aplicación que te permitirá **registrar gastos** para un mayor control de los mismos.
+En la página principal encontraras:
+- Todos los gastos añadidos
+- Opción de filtrarlos por cantidad y fecha. 
+- La opción de borrar gastos que ya no deseas que estén.
+- Consultar el total de los gatos
 
-```bash
-    git clone https://github.com/CristianChozas/App_Gastos_Personales.git
-    cd App_Gastos_Personales
-```
+Se ha focalizado la creación de una interfaz clara, sencilla e intuitiva para el usuario.
 
-2- Crea un entorno virtual e instala las dependencias
-
-```bash
-    python -m venv .venv
-    .\.venv\Scripts\activate
-    pip install -r requisitos.txt
-```
-
-3- Ejercuta la app
-
-```bash
-    python aplicacion.py
-```
-
-4- Abre el navegador en: 'http://127.0.0.1:5000
 
 Para este proyecto se ha usado:
 
