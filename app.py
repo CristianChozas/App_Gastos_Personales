@@ -19,7 +19,6 @@ def crear_app() -> Flask:
         __name__, template_folder="plantillas", static_folder="css")
     aplicacion.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dont_break_me")
 
-    # --------- Helpers ----------
     def _to_float_or_none(x: str):
         x = (x or "").strip().replace(",", ".")
         try:
@@ -52,10 +51,8 @@ def crear_app() -> Flask:
     @aplicacion.route("/signup", methods=["GET", "POST"])
     def signup():
         if request.method == "GET":
-            # página de registro vacía, sin éxito todavía
             return render_template("signup.html", exito=False)
 
-        # POST
         nickname = (request.form.get("nickname") or "").strip()
         email = (request.form.get("email") or "").strip() or None
         password = (request.form.get("password") or "").strip()
@@ -79,7 +76,6 @@ def crear_app() -> Flask:
             flash("No se pudo registrar. ¿Nickname o email ya usados?")
             return render_template("signup.html", exito=False)
 
-        # Registro correcto -> no iniciamos sesión, solo mostramos mensaje y botón para volver
         return render_template("signup.html", exito=True)
 
     @aplicacion.route("/login", methods=["GET", "POST"])
@@ -87,7 +83,6 @@ def crear_app() -> Flask:
         if request.method == "GET":
             return render_template("login.html")
 
-        # POST
         nickname = (request.form.get("nickname") or "").strip()
         password = (request.form.get("password") or "").strip()
 
@@ -99,16 +94,13 @@ def crear_app() -> Flask:
             ).fetchone()
 
         if not user:
-            # usuario no existe
             flash("Usuario sin registrar.")
             return render_template("login.html")
 
         if not check_password_hash(user["password_hash"], password):
-            # usuario existe pero contraseña incorrecta
             flash("El usuario y la contraseña no coinciden. Intentelo de nuevo")
             return render_template("login.html")
 
-        # login correcto
         session.clear()
         session["user_id"] = user["id"]
         next_url = request.args.get("next") or url_for("inicio")
@@ -120,7 +112,6 @@ def crear_app() -> Flask:
         flash("Sesión cerrada.")
         return redirect(url_for("login"))
 
-    # ---------- Rutas ----------
     @aplicacion.route("/")
     @login_required
     def inicio():
@@ -179,7 +170,6 @@ def crear_app() -> Flask:
             exito = (request.args.get("ok") == "1")
             return render_template("form.html", exito=exito)
 
-        # POST
         cantidad_raw = (request.form.get("cantidad")
                         or "").strip().replace(",", ".")
         categoria = (request.form.get("categoria") or "").strip()
@@ -216,7 +206,6 @@ def crear_app() -> Flask:
         """
         with get_db() as con:
             cur = con.cursor()
-            # Aseguramos propiedad
             r = cur.execute(
                 "DELETE FROM gastos WHERE id = ? AND owner_id = ?",
                 (gasto_id, g.user["id"])

@@ -12,24 +12,20 @@
 
     <form method="post" class="form-gasto">
         <label>Cantidad
-        <input name="cantidad" type="text" inputmode="decimal" placeholder="0.00" required>
+            <input name="cantidad" type="text" inputmode="decimal" placeholder="0.00" required>
         </label>
-
         <label>Categoría
-        <input name="categoria" type="text" required>
+            <input name="categoria" type="text" required>
         </label>
-
         <label>Descripción
-        <input name="descripcion" type="text" placeholder="Opcional">
+            <input name="descripcion" type="text" placeholder="Opcional">
         </label>
-
         <label>Fecha
-        <input name="fecha" type="date" required>
+            <input name="fecha" type="date" required>
         </label>
-
         <div class="acciones">
-        <button type="submit">Guardar</button>
-        <a class="btn-sec" href="{{ url_for('inicio') }}">Volver</a>
+            <button type="submit">Guardar</button>
+            <a class="btn-sec" href="{{ url_for('inicio') }}">Volver</a>
         </div>
     </form>
 {% endblock %}

@@ -30,30 +30,29 @@
 
     {% if gastos %}
         <table class="tabla-gastos">
-        <thead>
-            <tr>
-            <th>Fecha</th>
-            <th>Categoría</th>
-            <th>Descripción</th>
-            <th style="text-align:right;">Cantidad</th>
-            <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for g in gastos %}
-            <tr>
-            <td>{{ g.fecha }}</td>
-            <td>{{ g.categoria }}</td>
-            <td>{{ g.descripcion or '' }}</td>
-            <td style="text-align:right;">{{ '%.2f'|format(g.cantidad) }}</td>
-            <td>
-                <form method="post" action="{{ url_for('borrar_gasto', gasto_id=g.id) }}" onsubmit="return confirm('¿Eliminar este gasto?');">
-                <button type="submit">Borrar</button>
-                </form>
-            </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th style="text-align:right;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in gastos %}
+                    <tr>
+                        <td>{{ g.fecha }}</td>
+                        <td>{{ g.categoria }}</td>
+                        <td>{{ g.descripcion or '' }}</td>
+                        <td style="text-align:right;">{{ '%.2f'|format(g.cantidad) }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('borrar_gasto', gasto_id=g.id) }}" onsubmit="return confirm('¿Eliminar este gasto?');">
+                                <button type="submit">Borrar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
         </table>
     {% else %}
         <p>No hay gastos para los filtros actuales.</p>
@@ -61,6 +60,7 @@
 
     <p><a class="btn" href="{{ url_for('nuevo_gasto') }}"> Nuevo gasto</a></p>
 {% endblock %}
+
 {% block extra %}
     <script>
         const form = document.getElementById('form-filtros');
