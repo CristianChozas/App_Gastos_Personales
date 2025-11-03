@@ -1,0 +1,30 @@
+{% extends "inicio.html" %}
+{% block titulo %}Registro{% endblock %}
+
+{% block contenido %}
+    <div class="auth-card">
+        <h2>Crear cuenta</h2>
+
+        {% if exito %}
+            <p class="mensaje-exito">Registro exitoso</p>
+            <a href="{{ url_for('login') }}" class="btn-volver-login">
+            Volver a la página de inicio de sesión
+            </a>
+        {% else %}
+            <form method="post" action="{{ url_for('signup') }}" class="form-signup">
+            <label>Nickname</label>
+            <input name="nickname" required>
+            
+            <label>Contraseña</label>
+            <input name="password" type="password" required>
+
+            <button type="submit">Registrarme</button>
+            </form>
+
+            <p class="registro-link">
+            ¿Ya tienes cuenta?
+            <a href="{{ url_for('login') }}">Volver a iniciar sesión</a>
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

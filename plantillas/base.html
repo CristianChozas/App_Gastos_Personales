@@ -8,19 +8,43 @@
 </head>
 <body>
     <header class="header-shell">
-    {% block header %}{% endblock %}
+        <nav class="nav">
+
+        <div class="nav-links">
+            {% if g.user %}
+            <span class="nav-user">👤 {{ g.user.nickname }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-link">Salir</a>
+            {% else %}
+            <a href="{{ url_for('login') }}">Entrar</a>
+            <a href="{{ url_for('signup') }}">Registro</a>
+            {% endif %}
+        </div>
+        </nav>
+
+        {% block header %}{% endblock %}
     </header>
 
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for m in messages %}
+            <li>{{ m }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+
     <main>
-    {% block contenido %}{% endblock %}
+        {% block contenido %}{% endblock %}
     </main>
-    
+
+    <!-- Imágenes decorativas existentes -->
     <img src="{{ url_for('static', filename='imagenes/gif1.webp') }}" alt="gif de billetes" class="gif-final">
     <img src="{{ url_for('static', filename='imagenes/img2.webp') }}" alt="Imágen de calculadora" class="img-calculadora">
     <img src="{{ url_for('static', filename='imagenes/img1.jpg') }}" alt="Imágen de monedas" class="img-monedas">
-    
+
     {% block extra %}{% endblock %}
-    
+
     <footer>
         <small>&copy; Cristian Chozas Díaz - Reservados todos los derechos. 11/05/2025</small>
     </footer>

@@ -1,24 +1,25 @@
 """
-Aplicación web para el control de gastos personales.
+Aplicación web para el control de gastos personales con registro de usuario.
 """
-
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import (
+    Flask, render_template, request, redirect, url_for,
+    flash, session, g
+)
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 from db import init_db, get_db
 
 load_dotenv()
 
 
 def crear_app() -> Flask:
-    """
-    Crea y configura la aplicación Flask.
-    """
     aplicacion = Flask(
         __name__, template_folder="plantillas", static_folder="css")
     aplicacion.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dont_break_me")
 
-    # ---------- Helpers ----------
+    # --------- Helpers ----------
     def _to_float_or_none(x: str):
         x = (x or "").strip().replace(",", ".")
         try:
@@ -26,19 +27,113 @@ def crear_app() -> Flask:
         except ValueError:
             return None
 
+    def login_required(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not g.user:
+                flash("Debes iniciar sesión.")
+                return redirect(url_for("login", next=request.path))
+            return view(*args, **kwargs)
+        return wrapped
+
+    @aplicacion.before_request
+    def load_logged_in_user():
+        user_id = session.get("user_id")
+        if user_id is None:
+            g.user = None
+        else:
+            with get_db() as con:
+                cur = con.cursor()
+                g.user = cur.execute(
+                    "SELECT id, nickname, email FROM users WHERE id = ?", (
+                        user_id,)
+                ).fetchone()
+
+    @aplicacion.route("/signup", methods=["GET", "POST"])
+    def signup():
+        if request.method == "GET":
+            # página de registro vacía, sin éxito todavía
+            return render_template("signup.html", exito=False)
+
+        # POST
+        nickname = (request.form.get("nickname") or "").strip()
+        email = (request.form.get("email") or "").strip() or None
+        password = (request.form.get("password") or "").strip()
+
+        if not nickname or not password:
+            flash("Nickname y contraseña son obligatorios.")
+            return render_template("signup.html", exito=False)
+
+        pwd_hash = generate_password_hash(
+            password, method="pbkdf2:sha256", salt_length=16)
+
+        try:
+            with get_db() as con:
+                cur = con.cursor()
+                cur.execute(
+                    "INSERT INTO users (nickname, email, password_hash) VALUES (?, ?, ?)",
+                    (nickname, email, pwd_hash),
+                )
+                con.commit()
+        except Exception:
+            flash("No se pudo registrar. ¿Nickname o email ya usados?")
+            return render_template("signup.html", exito=False)
+
+        # Registro correcto -> no iniciamos sesión, solo mostramos mensaje y botón para volver
+        return render_template("signup.html", exito=True)
+
+    @aplicacion.route("/login", methods=["GET", "POST"])
+    def login():
+        if request.method == "GET":
+            return render_template("login.html")
+
+        # POST
+        nickname = (request.form.get("nickname") or "").strip()
+        password = (request.form.get("password") or "").strip()
+
+        with get_db() as con:
+            cur = con.cursor()
+            user = cur.execute(
+                "SELECT * FROM users WHERE nickname = ?",
+                (nickname,)
+            ).fetchone()
+
+        if not user:
+            # usuario no existe
+            flash("Usuario sin registrar.")
+            return render_template("login.html")
+
+        if not check_password_hash(user["password_hash"], password):
+            # usuario existe pero contraseña incorrecta
+            flash("El usuario y la contraseña no coinciden. Intentelo de nuevo")
+            return render_template("login.html")
+
+        # login correcto
+        session.clear()
+        session["user_id"] = user["id"]
+        next_url = request.args.get("next") or url_for("inicio")
+        return redirect(next_url)
+
+    @aplicacion.get("/logout")
+    def logout():
+        session.clear()
+        flash("Sesión cerrada.")
+        return redirect(url_for("login"))
+
     # ---------- Rutas ----------
     @aplicacion.route("/")
+    @login_required
     def inicio():
         """
-        Listado con filtros y total coherente con los filtros.
+        Listado con filtros y total del usuario logueado.
         """
         desde = (request.args.get("desde") or "").strip()
         hasta = (request.args.get("hasta") or "").strip()
         cantidad_min = _to_float_or_none(request.args.get("cantidad_min"))
         cantidad_max = _to_float_or_none(request.args.get("cantidad_max"))
 
-        where = ["1=1"]
-        params = []
+        where = ["owner_id = ?"]
+        params = [g.user["id"]]
 
         if desde:
             where.append("fecha >= ?")
@@ -72,9 +167,10 @@ def crear_app() -> Flask:
                 params,
             ).fetchone()["total"]
 
-        return render_template("index.html", gastos=gastos, total=total)
+        return render_template("index.html", gastos=gastos, total=total, user=g.user)
 
     @aplicacion.route("/nuevo", methods=["GET", "POST"])
+    @login_required
     def nuevo_gasto():
         """
         Formulario de alta. Usa PRG (Post/Redirect/Get).
@@ -105,24 +201,31 @@ def crear_app() -> Flask:
         with get_db() as con:
             cur = con.cursor()
             cur.execute(
-                "INSERT INTO gastos (cantidad, categoria, descripcion, fecha) VALUES (?, ?, ?, ?)",
-                (cantidad, categoria, descripcion, fecha),
+                "INSERT INTO gastos (cantidad, categoria, descripcion, fecha, owner_id) VALUES (?, ?, ?, ?, ?)",
+                (cantidad, categoria, descripcion, fecha, g.user["id"]),
             )
             con.commit()
 
-        # Redirige para evitar reenvío del formulario y mostrar mensaje de éxito
         return redirect(url_for("nuevo_gasto", ok=1))
 
     @aplicacion.post("/borrar/<int:gasto_id>")
+    @login_required
     def borrar_gasto(gasto_id: int):
         """
-        Elimina un gasto por id.
+        Elimina un gasto por id (solo si es del usuario).
         """
         with get_db() as con:
             cur = con.cursor()
-            cur.execute("DELETE FROM gastos WHERE id = ?", (gasto_id,))
+            # Aseguramos propiedad
+            r = cur.execute(
+                "DELETE FROM gastos WHERE id = ? AND owner_id = ?",
+                (gasto_id, g.user["id"])
+            )
             con.commit()
-        flash("Gasto eliminado.")
+        if r.rowcount == 0:
+            flash("No puedes borrar ese gasto.")
+        else:
+            flash("Gasto eliminado.")
         return redirect(url_for("inicio"))
 
     return aplicacion

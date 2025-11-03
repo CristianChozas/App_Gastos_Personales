@@ -1,32 +1,35 @@
 {% extends "base.html" %}
+{% block titulo %}Nuevo gasto{% endblock %}
 
-{% block titulo %}Registrar gasto{% endblock %}
-
-{% block header %}<h2 class="h2form">Añade un nuevo gasto</h2>{% endblock %}
+{% block header %}
+    <h1>Nuevo gasto</h1>
+{% endblock %}
 
 {% block contenido %}
-    <form action="{{ url_for('nuevo_gasto') }}" method="post">
-        <fieldset>
-            <label for="cantidad">Cantidad
-                <input id="cantidad" name="cantidad" type="number" step="0.01" min="0.01" placeholder="Cantidad.." required autocomplete="on" autofocus value="{{ request.form.get('cantidad','') }}">
-            </label>
-            <label for="categoria">Categoría
-                <input id="categoria" name="categoria" type="text" placeholder="Categoría.." required autocomplete="on" value="{{ request.form.get('categoria','') }}">
-            </label>
-            <label for="descripcion">Descripción</label>
-                <textarea id="descripcion" name="descripcion" placeholder="Descripción.." rows="3" >{{ request.form.get('descripcion','') }}</textarea>
-            <label for="fecha">Fecha
-                <input id="fecha" name="fecha" type="date" placeholder="Fecha.." required value="{{ request.form.get('fecha','') }}">
-            </label>
-        </fieldset>
-        <button type="submit">Enviar</button>
-        <button type="reset">Borrar</button>
-    </form>
-
     {% if exito %}
-        <div class="mensaje-exito">
-            <p>Gasto añadido correctamente.</p>
-            <a class="btn" href="{{ url_for('inicio') }}">Volver al inicio</a>
-        </div>
+        <p class="ok">Gasto guardado correctamente.</p>
     {% endif %}
+
+    <form method="post" class="form-gasto">
+        <label>Cantidad
+        <input name="cantidad" type="text" inputmode="decimal" placeholder="0.00" required>
+        </label>
+
+        <label>Categoría
+        <input name="categoria" type="text" required>
+        </label>
+
+        <label>Descripción
+        <input name="descripcion" type="text" placeholder="Opcional">
+        </label>
+
+        <label>Fecha
+        <input name="fecha" type="date" required>
+        </label>
+
+        <div class="acciones">
+        <button type="submit">Guardar</button>
+        <a class="btn-sec" href="{{ url_for('inicio') }}">Volver</a>
+        </div>
+    </form>
 {% endblock %}

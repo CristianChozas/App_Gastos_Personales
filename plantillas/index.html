@@ -1,71 +1,76 @@
 {% extends "base.html" %}
-
-{% block titulo %}Inicio{% endblock %}
+{% block titulo %}Mis gastos{% endblock %}
 
 {% block header %}
-    <h1 class="header-title">Gestión de gastos</h1>
-    <p class="header-text">En esta aplicación encontrarás la mejor forma de ir anotando tus gastos para poder gestionarlos y llevar el máximo control de tus cuentas desde un solo sitio.</p>
+    <h1>Mis gastos</h1>
 {% endblock %}
 
-
 {% block contenido %}
-    <div class="resumen-grid">
-        <div class="resumen-izq">
-            <h2>Resumen de gastos</h2>
-            <p>Este es tu resumen de gastos.</p>
-            <p>Puedes filtrarlos por cantidad o fecha.</p>
-            <a href="{{ url_for('nuevo_gasto') }}" class="btn">Nuevo gasto...</a>
-            <h3 class="total">Total: {{ "%.2f"|format((total or 0)|float) }} €</h3>
-        </div>
+    <form method="get" class="filtros" id="form-filtros">
+        <label>Desde 
+            <input type="date" name="desde" value="{{ request.args.get('desde','') }}">
+        </label>
+        <label>Hasta 
+            <input type="date" name="hasta" value="{{ request.args.get('hasta','') }}">
+        </label>
+        <label>Mín 
+            <input type="text" name="cantidad_min" value="{{ request.args.get('cantidad_min','') }}" placeholder="0.00">
+        </label>
+        <label>Máx 
+            <input type="text" name="cantidad_max" value="{{ request.args.get('cantidad_max','') }}" placeholder="999.99">
+        </label>
+        <button type="submit">Filtrar</button>
+        <button type="button" id="btn-limpiar">Limpiar</button>
+    </form>
 
-        <form method="get" action="{{ url_for('inicio') }}" class="filtros">
-            <label for="cantidad_min">Min.:
-                <input id="cantidad_min" name="cantidad_min" type="number" step="0.01" placeholder="0" value="{{ request.args.get('cantidad_min', '') }}">
-            </label>
-            <label for="cantidad_max">Max.:
-                <input id="cantidad_max" name="cantidad_max" type="number" step="0.01" placeholder="9999" value="{{ request.args.get('cantidad_max', '') }}">
-            </label>
-            <label for="desde">Desde:
-                <input id="desde" name="desde" type="date" value="{{ request.args.get('desde', '') }}">
-            </label>
-            <label for="hasta">Hasta:
-                <input id="hasta" name="hasta" type="date" value="{{ request.args.get('hasta', '') }}">
-            </label>
-            <div class="botones">
-                <button type="submit">Filtrar</button>
-                <a href="{{ url_for('inicio') }}"><button type="button">Limpiar</button></a>
-            </div>
-        </form>
-    </div>
 
-    {% if not gastos %}
-        <p>Aún no hay registros.</p>
-    {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Categoría</th>
-                    <th>Descripción</th>
-                    <th style="text-align:right;">Cantidad (€)</th>
-                    <th>Borrar gasto</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for g in gastos %}
-                    <tr>
-                        <td>{{ g["fecha"] }}</td>
-                        <td>{{ g["categoria"] }}</td>
-                        <td>{{ g["descripcion"] or "—" }}</td>
-                        <td style="text-align:right;">{{ "%.2f"|format(g["cantidad"]) }}</td>
-                        <td>
-                            <form method="post" action="{{ url_for('borrar_gasto', gasto_id=g['id']) }}" onsubmit="return confirm('¿Seguro que quieres borrar este gasto?');">
-                                <button type="submit">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
+    <section class="total">
+        <strong>Total:</strong> {{ '%.2f'|format(total or 0) }}
+    </section>
+
+    {% if gastos %}
+        <table class="tabla-gastos">
+        <thead>
+            <tr>
+            <th>Fecha</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th style="text-align:right;">Cantidad</th>
+            <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in gastos %}
+            <tr>
+            <td>{{ g.fecha }}</td>
+            <td>{{ g.categoria }}</td>
+            <td>{{ g.descripcion or '' }}</td>
+            <td style="text-align:right;">{{ '%.2f'|format(g.cantidad) }}</td>
+            <td>
+                <form method="post" action="{{ url_for('borrar_gasto', gasto_id=g.id) }}" onsubmit="return confirm('¿Eliminar este gasto?');">
+                <button type="submit">Borrar</button>
+                </form>
+            </td>
+            </tr>
+            {% endfor %}
+        </tbody>
         </table>
+    {% else %}
+        <p>No hay gastos para los filtros actuales.</p>
     {% endif %}
+
+    <p><a class="btn" href="{{ url_for('nuevo_gasto') }}"> Nuevo gasto</a></p>
+{% endblock %}
+{% block extra %}
+    <script>
+        const form = document.getElementById('form-filtros');
+        const limpiarBtn = document.getElementById('btn-limpiar');
+
+        limpiarBtn.addEventListener('click', () => {
+            // Vaciar todos los campos del formulario
+            form.querySelectorAll('input').forEach(input => input.value = '');
+            // Enviar la solicitud sin filtros
+            form.submit();
+        });
+    </script>
 {% endblock %}
